@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+// @Transactional 제거 완료
 @RestController
 @RequiredArgsConstructor
 public class TodoController {
