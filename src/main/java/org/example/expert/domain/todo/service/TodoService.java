@@ -1,6 +1,7 @@
 package org.example.expert.domain.todo.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
 import org.example.expert.domain.todo.entity.Todo;
 import org.example.expert.domain.todo.repository.TodoRepository;
@@ -22,12 +23,11 @@ public class TodoService {
 
     private final TodoRepository todoRepository;
 
-    // ... saveTodo 메서드 생략 ...
+    // ... saveTodo 메서드 ...
 
     public Page<TodoResponse> getTodos(int page, int size, String weather, String startDate, String endDate) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        // 날짜 문자열(YYYY-MM-DD)을 LocalDateTime으로 변환 (NULL 체크 포함)
         LocalDateTime startDateTime = null;
         LocalDateTime endDateTime = null;
 
@@ -51,5 +51,18 @@ public class TodoService {
         ));
     }
 
-    // ... getTodo 메서드 생략 ...
+    public TodoResponse getTodo(long todoId) { // ← 추가
+        Todo todo = todoRepository.findById(todoId)
+                .orElseThrow(() -> new InvalidRequestException("Todo not found"));
+
+        return new TodoResponse(
+                todo.getId(),
+                todo.getTitle(),
+                todo.getContents(),
+                todo.getWeather(),
+                new UserResponse(todo.getUser().getId(), todo.getUser().getEmail()),
+                todo.getCreatedAt(),
+                todo.getModifiedAt()
+        );
+    }
 }

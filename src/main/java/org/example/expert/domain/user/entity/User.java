@@ -1,3 +1,12 @@
+package org.example.expert.domain.user.entity;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.example.expert.domain.common.dto.AuthUser;
+import org.example.expert.domain.common.entity.Timestamped;
+import org.example.expert.domain.user.enums.UserRole;
+
 @Getter
 @Entity
 @NoArgsConstructor
@@ -9,24 +18,22 @@ public class User extends Timestamped {
     @Column(unique = true)
     private String email;
     private String password;
-    private String nickname; // 추가: 닉네임 컬럼
+    private String nickname;
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
 
-    // 회원가입 시 사용
     public User(String email, String password, UserRole userRole, String nickname) {
         this.email = email;
         this.password = password;
         this.userRole = userRole;
-        this.nickname = nickname; // 추가
+        this.nickname = nickname;
     }
 
-    // AuthUser 변환용
     private User(Long id, String email, UserRole userRole, String nickname) {
         this.id = id;
         this.email = email;
         this.userRole = userRole;
-        this.nickname = nickname; // 추가
+        this.nickname = nickname;
     }
 
     public static User fromAuthUser(AuthUser authUser) {
@@ -34,8 +41,14 @@ public class User extends Timestamped {
                 authUser.getId(),
                 authUser.getEmail(),
                 authUser.getUserRole(),
-                authUser.getNickname() // AuthUser에도 필드 추가 필요
+                authUser.getNickname()
         );
     }
-    // ... 기존 메서드
+
+    public void updateRole(UserRole userRole) { // ← 추가
+        this.userRole = userRole;
+    }
+    public void changePassword(String password) { // ← 추가
+        this.password = password;
+    }
 }

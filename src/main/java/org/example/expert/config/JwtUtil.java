@@ -1,8 +1,39 @@
+package org.example.expert.config;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.example.expert.domain.common.exception.InvalidRequestException;
+import org.example.expert.domain.user.enums.UserRole;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import java.security.Key;
+import java.util.Base64;
+import java.util.Date;
+
+@Slf4j
 @Component
 public class JwtUtil {
-    // ... 기존 코드 동일
 
-    // 수정: nickname 파라미터 추가
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final long TOKEN_TIME = 60 * 60 * 1000L;
+
+    @Value("${jwt.secret.key}")
+    private String secretKey;
+
+    private Key key;
+    private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+
+    @PostConstruct
+    public void init() {
+        byte[] bytes = Base64.getDecoder().decode(secretKey);
+        key = Keys.hmacShaKeyFor(bytes);
+    }
+
     public String createToken(Long userId, String email, UserRole userRole, String nickname) {
         Date date = new Date();
 
@@ -11,11 +42,29 @@ public class JwtUtil {
                         .setSubject(String.valueOf(userId))
                         .claim("email", email)
                         .claim("userRole", userRole)
-                        .claim("nickname", nickname) // 추가: 유저 닉네임
+                        .claim("nickname", nickname)
                         .setExpiration(new Date(date.getTime() + TOKEN_TIME))
                         .setIssuedAt(date)
                         .signWith(key, signatureAlgorithm)
                         .compact();
     }
-    // ... 하단 메서드 동일
+
+    public String substringToken(String tokenValue) {
+        if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(BEARER_PREFIX)) {
+            return tokenValue.substring(7);
+        }
+        throw new InvalidRequestException("유효하지 않은 토큰 형식입니다.");
+    }
+
+    public Claims extractClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public String getTokenFromRequest(HttpServletRequest request) {
+        return request.getHeader("Authorization");
+    }
 }
