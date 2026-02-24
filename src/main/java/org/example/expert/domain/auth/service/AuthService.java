@@ -35,14 +35,22 @@ public class AuthService {
 
         UserRole userRole = UserRole.of(signupRequest.getUserRole());
 
+        // User 생성 시 닉네임을 포함합니다.
         User newUser = new User(
                 signupRequest.getEmail(),
                 encodedPassword,
-                userRole
+                userRole,
+                signupRequest.getNickname()
         );
         User savedUser = userRepository.save(newUser);
 
-        String bearerToken = jwtUtil.createToken(savedUser.getId(), savedUser.getEmail(), userRole);
+        // 토큰 생성 시 닉네임을 포함합니다.
+        String bearerToken = jwtUtil.createToken(
+                savedUser.getId(),
+                savedUser.getEmail(),
+                userRole,
+                savedUser.getNickname()
+        );
 
         return new SignupResponse(bearerToken);
     }
@@ -51,12 +59,17 @@ public class AuthService {
         User user = userRepository.findByEmail(signinRequest.getEmail()).orElseThrow(
                 () -> new InvalidRequestException("가입되지 않은 유저입니다."));
 
-        // 로그인 시 이메일과 비밀번호가 일치하지 않을 경우 401을 반환합니다.
         if (!passwordEncoder.matches(signinRequest.getPassword(), user.getPassword())) {
             throw new AuthException("잘못된 비밀번호입니다.");
         }
 
-        String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail(), user.getUserRole());
+        // 로그인 성공 시 발급하는 토큰에도 닉네임을 포함합니다.
+        String bearerToken = jwtUtil.createToken(
+                user.getId(),
+                user.getEmail(),
+                user.getUserRole(),
+                user.getNickname()
+        );
 
         return new SigninResponse(bearerToken);
     }

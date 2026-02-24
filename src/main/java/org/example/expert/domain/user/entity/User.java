@@ -1,12 +1,3 @@
-package org.example.expert.domain.user.entity;
-
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.example.expert.domain.common.dto.AuthUser;
-import org.example.expert.domain.common.entity.Timestamped;
-import org.example.expert.domain.user.enums.UserRole;
-
 @Getter
 @Entity
 @NoArgsConstructor
@@ -18,30 +9,33 @@ public class User extends Timestamped {
     @Column(unique = true)
     private String email;
     private String password;
+    private String nickname; // 추가: 닉네임 컬럼
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
 
-    public User(String email, String password, UserRole userRole) {
+    // 회원가입 시 사용
+    public User(String email, String password, UserRole userRole, String nickname) {
         this.email = email;
         this.password = password;
         this.userRole = userRole;
+        this.nickname = nickname; // 추가
     }
 
-    private User(Long id, String email, UserRole userRole) {
+    // AuthUser 변환용
+    private User(Long id, String email, UserRole userRole, String nickname) {
         this.id = id;
         this.email = email;
         this.userRole = userRole;
+        this.nickname = nickname; // 추가
     }
 
     public static User fromAuthUser(AuthUser authUser) {
-        return new User(authUser.getId(), authUser.getEmail(), authUser.getUserRole());
+        return new User(
+                authUser.getId(),
+                authUser.getEmail(),
+                authUser.getUserRole(),
+                authUser.getNickname() // AuthUser에도 필드 추가 필요
+        );
     }
-
-    public void changePassword(String password) {
-        this.password = password;
-    }
-
-    public void updateRole(UserRole userRole) {
-        this.userRole = userRole;
-    }
+    // ... 기존 메서드
 }
