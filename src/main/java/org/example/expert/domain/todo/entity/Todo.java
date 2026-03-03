@@ -27,10 +27,12 @@ public class Todo extends Timestamped {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // 할 일이 삭제되면 댓글도 함께 삭제되도록 REMOVE 설정
     @OneToMany(mappedBy = "todo", cascade = CascadeType.REMOVE)
     private List<Comment> comments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "todo")
+    // 할 일이 저장될 때 생성자에서 추가한 Manager도 함께 저장되도록 PERSIST 설정
+    @OneToMany(mappedBy = "todo", cascade = CascadeType.PERSIST)
     private List<Manager> managers = new ArrayList<>();
 
     public Todo(String title, String contents, String weather, User user) {

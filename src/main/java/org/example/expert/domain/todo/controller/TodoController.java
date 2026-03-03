@@ -1,23 +1,35 @@
 package org.example.expert.domain.todo.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.expert.domain.common.annotation.Auth;
+import org.example.expert.domain.common.dto.AuthUser;
+import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
+import org.example.expert.domain.todo.dto.response.TodoSaveResponse;
 import org.example.expert.domain.todo.service.TodoService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/todos")
 @RequiredArgsConstructor
 public class TodoController {
 
     private final TodoService todoService;
 
-    // ... saveTodo 메서드 생략 ...
+    // 6번: 할 일 저장 API (POST /todos)
+    @PostMapping
+    public ResponseEntity<TodoSaveResponse> saveTodo(
+            @Auth AuthUser authUser,
+            @Valid @RequestBody TodoSaveRequest todoSaveRequest
+    ) {
+        return ResponseEntity.ok(todoService.saveTodo(authUser, todoSaveRequest));
+    }
 
-    @GetMapping("/todos")
+    // 3번: 할 일 전체 조회 (기간/날씨 검색 포함)
+    @GetMapping
     public ResponseEntity<Page<TodoResponse>> getTodos(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -28,5 +40,9 @@ public class TodoController {
         return ResponseEntity.ok(todoService.getTodos(page, size, weather, startDate, endDate));
     }
 
-    // ... getTodo 메서드 생략 ...
+    // 4번: 할 일 단건 조회
+    @GetMapping("/{todoId}")
+    public ResponseEntity<TodoResponse> getTodo(@PathVariable Long todoId) {
+        return ResponseEntity.ok(todoService.getTodo(todoId));
+    }
 }
