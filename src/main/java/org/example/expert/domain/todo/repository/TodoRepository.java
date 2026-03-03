@@ -9,7 +9,8 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 
-public interface TodoRepository extends JpaRepository<Todo, Long> {
+// TodoRepositoryCustom을 추가하여 QueryDSL 메서드를 사용할 수 있게 합니다.
+public interface TodoRepository extends JpaRepository<Todo, Long>, TodoRepositoryCustom {
 
     @Query("SELECT t FROM Todo t " +
             "LEFT JOIN FETCH t.user " +
@@ -24,6 +25,5 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
             Pageable pageable
     );
 
-    // 기존 메서드 (필요 시 유지)
     Page<Todo> findAllByOrderByModifiedAtDesc(Pageable pageable);
 }
