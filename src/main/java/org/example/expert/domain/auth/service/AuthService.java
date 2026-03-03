@@ -2,7 +2,7 @@ package org.example.expert.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.expert.config.JwtUtil;
-import org.example.expert.config.PasswordEncoder;
+// import org.example.expert.config.PasswordEncoder; // ← 기존 패스워드 인코더 삭제
 import org.example.expert.domain.auth.dto.request.SigninRequest;
 import org.example.expert.domain.auth.dto.request.SignupRequest;
 import org.example.expert.domain.auth.dto.response.SigninResponse;
@@ -12,6 +12,7 @@ import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.enums.UserRole;
 import org.example.expert.domain.user.repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // ← 추가
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder passwordEncoder; // ← 시큐리티용으로 변경
     private final JwtUtil jwtUtil;
 
     @Transactional
@@ -31,11 +32,11 @@ public class AuthService {
             throw new InvalidRequestException("이미 존재하는 이메일입니다.");
         }
 
+        // 시큐리티의 BCrypt로 암호화됩니다.
         String encodedPassword = passwordEncoder.encode(signupRequest.getPassword());
 
         UserRole userRole = UserRole.of(signupRequest.getUserRole());
 
-        // User 생성 시 닉네임을 포함합니다.
         User newUser = new User(
                 signupRequest.getEmail(),
                 encodedPassword,
@@ -44,7 +45,6 @@ public class AuthService {
         );
         User savedUser = userRepository.save(newUser);
 
-        // 토큰 생성 시 닉네임을 포함합니다.
         String bearerToken = jwtUtil.createToken(
                 savedUser.getId(),
                 savedUser.getEmail(),
@@ -59,11 +59,11 @@ public class AuthService {
         User user = userRepository.findByEmail(signinRequest.getEmail()).orElseThrow(
                 () -> new InvalidRequestException("가입되지 않은 유저입니다."));
 
+        // 시큐리티의 matches 메서드로 비밀번호를 확인합니다.
         if (!passwordEncoder.matches(signinRequest.getPassword(), user.getPassword())) {
             throw new AuthException("잘못된 비밀번호입니다.");
         }
 
-        // 로그인 성공 시 발급하는 토큰에도 닉네임을 포함합니다.
         String bearerToken = jwtUtil.createToken(
                 user.getId(),
                 user.getEmail(),

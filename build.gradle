@@ -54,3 +54,8 @@ dependencies {
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 }
+
+dependencies {
+    // Spring Security 추가
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+}

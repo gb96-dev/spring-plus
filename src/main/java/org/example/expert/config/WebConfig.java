@@ -11,9 +11,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    // ArgumentResolver 등록
+    // 이제 시큐리티가 인증을 관리하므로 수동 리졸버 등록은 필요 없습니다.
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(new AuthUserArgumentResolver());
+        // resolvers.add(new AuthUserArgumentResolver()); // ← 주석 처리 또는 삭제
     }
 }
